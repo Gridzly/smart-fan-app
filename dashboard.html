@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Smart Fan</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/dashboard.js" defer></script>
+</head>
+<body>
+
+<div class="dashboard-container">
+
+  <div class="top-bar">
+    <h2>Smart Fan Dashboard</h2>
+  </div>
+
+  <!-- Theme toggle switch -->
+<div class="theme-switch-wrapper">
+  <span class="switch-label">LIGHT MODE</span>
+  <label class="switch">
+    <input type="checkbox" id="themeToggle">
+    <span class="slider"></span>
+  </label>
+</div>
+
+
+  <p id="welcomeMsg">Checking session...</p>
+
+  <div class="status-box">
+    <span class="status-label">System Status</span><br>
+    <strong id="currentStatusText">FETCHING...</strong>
+  </div>
+
+  <button id="fanBtn" class="fan-btn">Turn ON</button>
+
+  <div class="card">
+    <h3>Recently Active Users</h3>
+    <ul id="recentUsers" class="user-list"></ul>
+  </div>
+
+  <div class="card">
+    <h3>Usage History</h3>
+    <div id="usageHistoryList" class="history-list"></div>
+  </div>
+
+  <button id="logoutBtn" class="logout-btn">Logout</button>
+
+</div>
+
+</body>
+</html>
