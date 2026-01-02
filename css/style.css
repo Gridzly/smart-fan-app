@@ -1,490 +1,363 @@
-  /* -------------------- General -------------------- */
-  :root {
-    --bg: #f4f6fb;
-    --card: #ffffff;
-    --text: #333;
-    --accent: #3498db;
-    --success: #27ae60;
-    --danger: #e74c3c;
-  }
-
-  body.dark {
-    --bg: #121212;
-    --card: #1e1e1e;
-    --text: #f5f5f5;
-    --accent: #6ab0ff;
-    --success: #2ecc71;
-    --danger: #ff6b6b;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    transition: 0.3s;
-    padding: 12px;
-  }
-
-  /* -------------------- Containers -------------------- */
-  .login-container,
-  .signup-container,
-  .dashboard-container {
-    background: var(--card);
-    padding: 30px 25px;
-    border-radius: 15px;
-    box-shadow: 0 15px 25px rgba(0,0,0,0.2);
-    width: 100%;
-    max-width: 520px;
-  }
-
-  /* -------------------- Headings -------------------- */
-  h2 {
-    margin-bottom: 10px;
-  }
-
-  .subtitle {
-    color: #777;
-  }
-
-  /* -------------------- Inputs -------------------- */
-  .input-group {
-    position: relative;
-    width: 100%;
-    margin-bottom: 18px;
-  }
-
-  .input-group input,
-  .input-group select {
-    width: 100%;
-    height: 48px;
-    padding: 0 14px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    background: #eef4ff;
-    outline: none;
-    transition: 0.25s;
-  }
-
-  .input-group label {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 13px;
-    color: #888;
-    pointer-events: none;
-    transition: 0.25s ease;
-  }
-
-  .input-group input:focus + label,
-  .input-group input:valid + label,
-  .input-group select:focus + label,
-  .input-group select:valid + label {
-    top: -7px;
-    font-size: 11px;
-    background: var(--card);
-    padding: 0 5px;
-    color: var(--accent);
-    box-shadow: 0 0 5px var(--accent);
-    border-color: var(--accent);
-  }
-
-  /* -------------------- Buttons -------------------- */
-  button {
-    width: 100%;
-    height: 48px;
-    border-radius: 8px;
-    border: none;
-    background: var(--accent);
-    color: white;
-    font-size: 15px;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: 0.2s;
-  }
-
-  button:hover {
-    opacity: 0.9;
-  }
-
-  button:active {
-    transform: scale(0.97);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-
-  .fan-btn {
-    font-weight: bold;
-  }
-
-  .fan-btn.on {
-    background: var(--success);
-  }
-
-  .fan-btn.off {
-    background: var(--danger);
-  }
-
-  .logout-btn {
-    background: var(--danger);
-  }
-
-  /* Night mode button */
-  .theme-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .theme-btn:hover {
-    opacity: 0.9;
-  }
-
-  .theme-btn:active {
-    transform: scale(0.95);
-  }
-
-  /* -------------------- OR Divider -------------------- */
-  .or-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 18px 0;
-    color: #777;
-    font-size: 13px;
-  }
-
-  .or-divider::before,
-  .or-divider::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: #ddd;
-  }
-
-  .or-divider span {
-    padding: 0 10px;
-  }
-
-  /* -------------------- Google Login Button -------------------- */
-  .google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    height: 48px;
-    background: #ffffff;
-    color: #444;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .google-btn img {
-    width: 18px;
-    height: 18px;
-  }
-
-  .google-btn:hover {
-    background: #f7f7f7;
-  }
-
-  .google-btn:active {
-    transform: scale(0.97);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-
-  /* -------------------- Dashboard -------------------- */
-  .top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  #themeToggle {
-    font-size: 20px;
-    cursor: pointer;
-  }
-
-  /* -------------------- Status -------------------- */
-  .status-box {
-    background: rgba(0,0,0,0.05);
-    padding: 15px;
-    border-radius: 12px;
-    margin: 15px 0;
-  }
-
-  .status-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    opacity: 0.7;
-  }
-
-  /* -------------------- Cards -------------------- */
-  .card {
-    background: var(--card);
-    padding: 15px;
-    border-radius: 12px;
-    margin-top: 15px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-    transition: 0.3s;
-  }
-
-  .card h3 {
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 5px;
-  }
-
-  /* -------------------- Lists -------------------- */
-  .user-list {
-    list-style: none;
-    padding: 0;
-  }
-
-  .user-list li {
-    padding: 6px 0;
-    font-size: 14px;
-  }
-
-  .history-list div {
-    padding: 10px;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    font-size: 13px;
-  }
-
-  /* -------------------- Mobile -------------------- */
-  @media (max-width: 480px) {
-    body {
-      padding: 10px;
-    }
-
-    .login-container,
-    .signup-container,
-    .dashboard-container {
-      width: 100%;
-      padding: 20px 15px;
-      border-radius: 12px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    }
-
-    button,
-    .google-btn {
-      height: 50px;
-      font-size: 16px;
-    }
-
-    .input-group input,
-    .input-group select {
-      height: 50px;
-      font-size: 15px;
-      padding: 0 16px;
-    }
-
-    .input-group label {
-      font-size: 12px;
-    }
-
-    .card {
-      padding: 12px;
-    }
-
-    .top-bar h2 {
-      font-size: 18px;
-    }
-
-    #fanBtn {
-      font-size: 16px;
-    }
-  }
-
-  /* ---------------- CLEAN USAGE HISTORY UI ---------------- */
-
-  #usageHistoryList > div {
-    display: flex;
-    gap: 16px;
-  }
-
-  #usageHistoryList h4 {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-
-  /* Individual history card */
-  .history-item {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    border-left: 4px solid transparent;
-  }
-
-  /* ON / OFF accent */
-  .history-item.on {
-    border-left-color: var(--success);
-  }
-
-  .history-item.off {
-    border-left-color: var(--danger);
-  }
-
-  /* Name / Email */
-  .history-name {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 2px;
-    word-break: break-all;
-  }
-
-  /* Action text */
-  .history-action {
-    font-size: 13px;
-    font-weight: 500;
-  }
-
-  /* Timestamp */
-  .history-time {
-    font-size: 11px;
-    color: #888;
-    margin-top: 2px;
-  }
-
-  /* ---------------- REMOVE BOTTOM LINE ON LAST ITEM ---------------- */
-
-  /* Remove border/shadow spacing on last item in each column */
-  #usageHistoryList .history-item:last-child {
-    margin-bottom: 0;
-    box-shadow: none;
-  }
-
-  /* Optional: softer ending */
-  #usageHistoryList {
-    padding-bottom: 6px;
-  }
-
-  /* ---------------- FIX LAST CARD DIVIDER PROPERLY ---------------- */
-
-  /* Remove spacing & shadow on the LAST history card inside each column */
-  #usageHistoryList > div > div .history-item:last-of-type {
-    margin-bottom: 0;
-    box-shadow: none;
-  }
-  #usageHistoryList {
-    padding-bottom: 10px;
-  }
-/* ---------------- REMOVE ALL HISTORY DIVIDER LINES ---------------- */
-
-/* Remove old border-bottom lines */
-.history-list div {
-  border-bottom: none !important;
+/* -------------------- General -------------------- */
+:root {
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --text: #2c2c2c;
+  --accent: #4c8cff;
+  --accent-hover: #3a76e0;
+  --success: #28c76f;
+  --danger: #ff6b6b;
+  --input-bg: #f0f4ff;
+  --input-border: #d1d9ff;
+  --shadow: rgba(0, 0, 0, 0.08);
 }
 
-/* Remove visual line effect from history cards */
-.history-item {
-  box-shadow: none !important;
-  margin-bottom: 12px; /* keep spacing clean */
+body.dark {
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #f5f5f5;
+  --accent: #6ab0ff;
+  --accent-hover: #58a0e0;
+  --success: #2ecc71;
+  --danger: #ff6b6b;
+  --input-bg: #1c1c1c;
+  --input-border: #333;
+  --shadow: rgba(0, 0, 0, 0.5);
 }
 
-/* -------------------- Theme Toggle Switch -------------------- */
-.theme-switch-wrapper {
+* {
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg);
+  color: var(--text);
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
+  min-height: 100vh;
+  margin: 0;
+  padding: 12px;
+}
+
+/* -------------------- Containers -------------------- */
+.login-container,
+.signup-container,
+.dashboard-container {
+  background: var(--card);
+  padding: 30px 25px;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px var(--shadow);
+  width: 100%;
+  max-width: 520px;
+}
+
+/* -------------------- Headings -------------------- */
+h2 {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.subtitle {
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* -------------------- Inputs -------------------- */
+.input-group {
+  position: relative;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--input-border);
+  font-size: 14px;
+  background: var(--input-bg);
+  outline: none;
+}
+
+.input-group label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: #888;
+  pointer-events: none;
+  background: transparent;
+  transition: 0.25s ease;
+}
+
+.input-group input:focus + label,
+.input-group input:valid + label,
+.input-group select:focus + label,
+.input-group select:valid + label {
+  top: -8px;
+  font-size: 11px;
+  background: var(--card);
+  padding: 0 5px;
+  color: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* -------------------- Buttons -------------------- */
+button {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  box-shadow: 0 6px 15px var(--shadow);
+}
+
+button:hover {
+  background: var(--accent-hover);
+}
+
+button:active {
+  transform: scale(0.97);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.fan-btn.on { background: var(--success); }
+.fan-btn.off { background: var(--danger); }
+.logout-btn { background: var(--danger); }
+
+/* Theme toggle button */
+.theme-btn {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
 }
 
-.switch-label {
+.theme-btn:hover { background: var(--accent-hover); }
+.theme-btn:active { transform: scale(0.95); }
+
+/* -------------------- OR Divider -------------------- */
+.or-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  color: #aaa;
+  font-size: 13px;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #ddd;
+}
+
+.or-divider span {
+  padding: 0 10px;
+}
+
+/* -------------------- Google Button -------------------- */
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  height: 48px;
+  background: #fff;
+  color: #444;
+  border: 1px solid #ddd;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.google-btn img { width: 20px; height: 20px; }
+
+.google-btn:hover { background: #f5f5f5; }
+.google-btn:active { transform: scale(0.97); box-shadow: 0 2px 5px var(--shadow); }
+
+/* -------------------- Dashboard -------------------- */
+.top-bar { display: flex; justify-content: space-between; align-items: center; }
+#themeToggle { font-size: 22px; cursor: pointer; }
+
+/* Status box */
+.status-box {
+  background: rgba(0,0,0,0.03);
+  padding: 16px;
+  border-radius: 14px;
+  margin: 15px 0;
+}
+
+.status-label { font-size: 11px; text-transform: uppercase; opacity: 0.7; }
+
+/* Cards */
+.card {
+  background: var(--card);
+  padding: 18px;
+  border-radius: 16px;
+  margin-top: 18px;
+  box-shadow: 0 8px 20px var(--shadow);
   transition: 0.3s;
 }
 
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 28px;
-}
+.card h3 { border-bottom: 2px solid var(--accent); padding-bottom: 6px; }
 
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+/* Lists */
+.user-list, .history-list { list-style: none; padding: 0; }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  background-color: #ccc;
-  border-radius: 34px;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  transition: 0.4s;
-}
+.user-list li { padding: 8px 0; font-size: 14px; }
 
-.slider::before {
-  position: absolute;
-  content: "";
-  height: 22px;
-  width: 22px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.4s;
-}
-
-input:checked + .slider {
-  background-color: var(--accent);
-}
-
-input:checked + .slider::before {
-  transform: translateX(32px);
-}
-
-input:checked ~ .switch-label {
-  color: #fff;
-}
-
-body.dark ~ .theme-switch-wrapper .switch-label {
-  color: #f5f5f5;
-}
-
+/* -------------------- Fan Icon Animation -------------------- */
 .fan-icon {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   background: url('../images/fan.png') no-repeat center center;
   background-size: contain;
-  transition: transform 0.2s linear;
+  transition: transform 0.25s linear;
 }
 
-.spin {
-  animation: spin 1s linear infinite;
-}
+.spin { animation: spin 1s linear infinite; }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* -------------------- Mobile Adjustments -------------------- */
+@media (max-width: 480px) {
+  .login-container, .signup-container, .dashboard-container {
+    padding: 20px 15px;
+    border-radius: 14px;
+  }
+  button, .google-btn { height: 50px; font-size: 16px; }
+  .input-group input, .input-group select { height: 50px; font-size: 15px; padding: 0 16px; }
+}
+
+/* -------------------- Usage History (Improved) -------------------- */
+#usageHistoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 10px;
+}
+
+#usageHistoryList > div {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-radius: 14px;
+  border-left: 4px solid transparent; /* ON/OFF accent */
+  padding: 14px 16px;
+  box-shadow: 0 4px 12px var(--shadow);
+  transition: 0.3s;
+}
+
+.history-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--shadow);
+}
+
+.history-item.on { border-left-color: var(--success); }
+.history-item.off { border-left-color: var(--danger); }
+
+.history-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.history-action {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+.history-time {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+  align-self: flex-end;
+}
+
+#usageHistoryList > div > .history-item:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .history-item {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+  .history-name { font-size: 13px; }
+  .history-action { font-size: 12px; }
+  .history-time { font-size: 10px; }
+}
+
+/* -------------------- Theme Switch -------------------- */
+.theme-switch-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+
+.switch-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.switch { position: relative; display: inline-block; width: 60px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 34px; transition: 0.4s; }
+.slider::before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: #fff; border-radius: 50%; transition: 0.4s; }
+input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider::before { transform: translateX(32px); }
+input:checked ~ .switch-label { color: #fff; }
+body.dark ~ .theme-switch-wrapper .switch-label { color: #f5f5f5; }
+
+#weatherCard p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+/* -------------------- System Status Highlight -------------------- */
+.status-box {
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.status-box.on {
+  background-color: #27ae60; /* green */
+  color: white;
+}
+
+.status-box.off {
+  background-color: #e74c3c; /* red */
+  color: white;
+}
+
 

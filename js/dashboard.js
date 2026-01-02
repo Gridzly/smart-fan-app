@@ -1,11 +1,10 @@
-import { auth, db } from "./firebaseConfig.js";
+import { auth, db } from "./firebaseConfig.js"; 
 import { onAuthStateChanged, signOut } from
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { ref, set, push, onValue, get } from
+import { ref, push, onValue, get } from
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const welcomeMsg = document.getElementById("welcomeMsg");
-const fanBtn = document.getElementById("fanBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const usageHistoryList = document.getElementById("usageHistoryList");
 const recentUsers = document.getElementById("recentUsers");
@@ -13,6 +12,7 @@ const statusText = document.getElementById("currentStatusText");
 const themeToggle = document.getElementById("themeToggle");
 
 let currentUserName = "";
+let currentUserRole = "";
 let fanStatus = "OFF";
 
 /* ---------------- AUTH CHECK ---------------- */
@@ -23,55 +23,34 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const snap = await get(ref(db, "users/" + user.uid));
+  
   currentUserName =
-  snap.exists() && snap.val().name
-    ? snap.val().name
-    : user.displayName
-      ? user.displayName
-      : "Unknown User";
+    snap.exists() && snap.val().name
+      ? snap.val().name
+      : user.displayName
+        ? user.displayName
+        : "Unknown User";
 
-  welcomeMsg.textContent = `Welcome, ${currentUserName}`;
+  currentUserRole =
+    snap.exists() && snap.val().role
+      ? snap.val().role
+      : "Unknown Role";
 
-  // Save login action with date and time
+  // Display name AND role
+  welcomeMsg.textContent = `Welcome, ${currentUserName} (${currentUserRole})`;
+
+  // Save login action with date & time
   const now = new Date();
   push(ref(db, "usageHistory"), {
     name: currentUserName,
+    role: currentUserRole,
     action: "Logged In",
     date: now.toLocaleDateString(),
     time: now.toLocaleTimeString()
   });
 
-  loadFanStatus();
   loadHistory();
 });
-
-/* ---------------- FAN TOGGLE ---------------- */
-fanBtn.addEventListener("click", () => {
-  fanStatus = fanStatus === "OFF" ? "ON" : "OFF";
-
-  fanBtn.classList.toggle("on", fanStatus === "ON");
-  fanBtn.classList.toggle("off", fanStatus === "OFF");
-  fanBtn.textContent = fanStatus === "ON" ? "Turn OFF" : "Turn ON";
-
-  set(ref(db, "fanStatus"), {
-    status: fanStatus,
-    updatedBy: currentUserName,
-    timestamp: new Date().toISOString()
-  });
-
-  saveUsage(`Fan ${fanStatus}`);
-});
-
-/* ---------------- SAVE HISTORY ---------------- */
-function saveUsage(action) {
-  const now = new Date();
-  push(ref(db, "usageHistory"), {
-    name: currentUserName,
-    action,
-    date: now.toLocaleDateString(),
-    time: now.toLocaleTimeString()
-  });
-}
 
 /* ---------------- LOAD HISTORY ---------------- */
 function loadHistory() {
@@ -86,38 +65,35 @@ function loadHistory() {
     onColumn.innerHTML = "<h4>Fan ON</h4>";
     offColumn.innerHTML = "<h4>Fan OFF</h4>";
 
-    const usersMap = new Map(); // existing: last activity
-    const loginHistoryMap = new Map(); // added: all login history
+    const usersMap = new Map(); // last active users
+    const loginHistoryMap = new Map(); // login history
 
     snapshot.forEach((child) => {
       const d = child.val();
 
-      /* -------- EXISTING LAST ACTIVE -------- */
+      // Add last active user info
       if (
         !usersMap.has(d.name) ||
         new Date(`${d.date} ${d.time}`) >
           new Date(`${usersMap.get(d.name).date} ${usersMap.get(d.name).time}`)
       ) {
-        usersMap.set(d.name, { date: d.date, time: d.time });
+        usersMap.set(d.name, { date: d.date, time: d.time, role: d.role || "Unknown" });
       }
 
-      /* -------- ADD: STORE LOGIN HISTORY -------- */
+      // Store login history
       if (d.action === "Logged In") {
-        if (!loginHistoryMap.has(d.name)) {
-          loginHistoryMap.set(d.name, []);
-        }
-        loginHistoryMap.get(d.name).push({
-          date: d.date,
-          time: d.time
-        });
+        if (!loginHistoryMap.has(d.name)) loginHistoryMap.set(d.name, []);
+        loginHistoryMap.get(d.name).push({ date: d.date, time: d.time });
       }
 
       const div = document.createElement("div");
       div.style.marginBottom = "8px";
       div.style.borderBottom = "1px solid rgba(0,0,0,0.1)";
       div.style.paddingBottom = "4px";
+
+      // Only display date & time for automatic ESP32 logs or ON/OFF actions
       div.innerHTML = `
-        <strong>${d.name}</strong><br>
+        <strong>${d.name} (${d.role || "Unknown"})</strong><br>
         ${d.action}<br>
         <small>${d.date} • ${d.time}</small>
       `;
@@ -136,12 +112,12 @@ function loadHistory() {
     container.appendChild(offColumn);
     usageHistoryList.appendChild(container);
 
-    /* -------- RECENT USERS (CLEAN VIEW) -------- */
+    /* -------- RECENT USERS -------- */
     usersMap.forEach((val, name) => {
       const li = document.createElement("li");
 
       const header = document.createElement("div");
-      header.textContent = `${name} • ${val.date} • ${val.time}`;
+      header.textContent = `${name} (${val.role}) • ${val.date} • ${val.time}`;
       header.style.fontWeight = "600";
 
       const toggle = document.createElement("span");
@@ -177,38 +153,88 @@ function loadHistory() {
   });
 }
 
-/* ---------------- FAN STATUS ---------------- */
-function loadFanStatus() {
-  onValue(ref(db, "fanStatus"), (snap) => {
-    if (snap.exists()) {
-      fanStatus = snap.val().status;
-      statusText.textContent = fanStatus;
-      fanBtn.textContent = fanStatus === "ON" ? "Turn OFF" : "Turn ON";
-      fanBtn.classList.toggle("on", fanStatus === "ON");
-      fanBtn.classList.toggle("off", fanStatus === "OFF");
-    }
-  });
-}
+/* ---------------- FAN STATUS (ESP32 AUTOMATIC) ---------------- */
+onValue(ref(db, "esp32FanStatus"), (snap) => {
+  if (snap.exists()) {
+    const data = snap.val(); // { status, timestamp }
+    fanStatus = data.status;
+    
+    // Update status text
+    statusText.textContent = fanStatus;
 
+    // Update the status box color (green/red)
+    const statusBox = document.querySelector(".status-box");
+    statusBox.classList.remove("on", "off");
+    statusBox.classList.add(fanStatus.toLowerCase());
+
+    // Save automatic ON/OFF usage logs with date & time only
+    const logTime = new Date(data.timestamp);
+
+    // Check last log to avoid duplicate entries
+    onValue(ref(db, "usageHistory"), (historySnap) => {
+      let lastLog = null;
+      historySnap.forEach((child) => {
+        const val = child.val();
+        if (val.name === "ESP32") lastLog = val;
+      });
+
+      // Only push new log if status changed
+      if (!lastLog || lastLog.action !== (fanStatus === "ON" ? "Fan ON" : "Fan OFF")) {
+        push(ref(db, "usageHistory"), {
+          name: "ESP32",
+          role: "System",
+          action: fanStatus === "ON" ? "Fan ON" : "Fan OFF",
+          date: logTime.toLocaleDateString(),
+          time: logTime.toLocaleTimeString()
+        });
+      }
+    });
+  }
+});
+
+
+/* ---------------- THEME TOGGLE ---------------- */
 const themeToggleInput = document.getElementById("themeToggle");
 const themeLabel = document.querySelector(".switch-label");
 
-// Initialize toggle based on current theme
 themeToggleInput.checked = document.body.classList.contains("dark");
 themeLabel.textContent = themeToggleInput.checked ? "NIGHT MODE" : "LIGHT MODE";
 
 themeToggleInput.addEventListener("change", () => {
   document.body.classList.toggle("dark");
-
-  if (document.body.classList.contains("dark")) {
-    themeLabel.textContent = "NIGHT MODE";
-  } else {
-    themeLabel.textContent = "LIGHT MODE";
-  }
+  themeLabel.textContent = document.body.classList.contains("dark")
+    ? "NIGHT MODE"
+    : "LIGHT MODE";
 });
 
+/* ---------------- WEATHER ---------------- */
+const temperatureEl = document.getElementById("temperature");
+const weatherConditionEl = document.getElementById("weatherCondition");
+const OPENWEATHER_API_KEY = "8387b43714e736b0d4296517564e1201";
+const CAVITE_LAT = 14.4586;
+const CAVITE_LON = 120.9360;
+
+async function loadCaviteWeather() {
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${CAVITE_LAT}&lon=${CAVITE_LON}&appid=${OPENWEATHER_API_KEY}&units=metric`
+    );
+    const data = await res.json();
+    if (data.cod !== 200) throw new Error(data.message);
+
+    temperatureEl.textContent = `Temperature: ${Math.round(data.main.temp)} °C`;
+    weatherConditionEl.textContent = `Condition: ${data.weather[0].description}`;
+  } catch (err) {
+    temperatureEl.textContent = "Temperature: Error";
+    weatherConditionEl.textContent = "Condition: Unable to load";
+    console.error("Weather error:", err.message);
+  }
+}
+
+loadCaviteWeather();
+setInterval(loadCaviteWeather, 300000);
 
 /* ---------------- LOGOUT ---------------- */
 logoutBtn.addEventListener("click", () => {
-  signOut(auth).then(() => window.location.href = "login.html");
+  signOut(auth).then(() => (window.location.href = "login.html"));
 });

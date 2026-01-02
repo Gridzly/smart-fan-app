@@ -15,34 +15,46 @@
   </div>
 
   <!-- Theme toggle switch -->
-<div class="theme-switch-wrapper">
-  <span class="switch-label">LIGHT MODE</span>
-  <label class="switch">
-    <input type="checkbox" id="themeToggle">
-    <span class="slider"></span>
-  </label>
-</div>
+  <div class="theme-switch-wrapper">
+    <span class="switch-label">LIGHT MODE</span>
+    <label class="switch">
+      <input type="checkbox" id="themeToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
 
-
+  <!-- Welcome message -->
   <p id="welcomeMsg">Checking session...</p>
 
+  <!-- Current system status (ESP32 automatic) -->
   <div class="status-box">
     <span class="status-label">System Status</span><br>
     <strong id="currentStatusText">FETCHING...</strong>
   </div>
 
-  <button id="fanBtn" class="fan-btn">Turn ON</button>
+  <!-- Weather card -->
+  <div class="card" id="weatherCard">
+    <h3>CvSU Imus Campus Weather</h3>
+    <p><strong>Location:</strong> CWHW+9VJ Cavite Civic Center, Cavite, 4103 Cavite</p>
+    <p id="temperature">Temperature: Fetching...</p>
+    <p id="weatherCondition">Condition: Fetching...</p>
+  </div>
 
+  <!-- Removed manual fan button -->
+
+  <!-- Recently active users -->
   <div class="card">
     <h3>Recently Active Users</h3>
     <ul id="recentUsers" class="user-list"></ul>
   </div>
 
+  <!-- Usage history -->
   <div class="card">
     <h3>Usage History</h3>
     <div id="usageHistoryList" class="history-list"></div>
   </div>
 
+  <!-- Logout button -->
   <button id="logoutBtn" class="logout-btn">Logout</button>
 
 </div>
