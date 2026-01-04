@@ -37,7 +37,7 @@ form.addEventListener("submit", (e) => {
       })
       .then(() => {
         alert("Account created successfully!");
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       });
     })
     .catch((err) => alert(err.message));

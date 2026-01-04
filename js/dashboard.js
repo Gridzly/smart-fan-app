@@ -18,7 +18,7 @@ let fanStatus = "OFF";
 /* ---------------- AUTH CHECK ---------------- */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    window.location.href = "index.html";
     return;
   }
 
@@ -221,5 +221,5 @@ setInterval(loadCaviteWeather, 300000);
 
 /* ---------------- LOGOUT ---------------- */
 logoutBtn.addEventListener("click", () => {
-  signOut(auth).then(() => (window.location.href = "login.html"));
+  signOut(auth).then(() => (window.location.href = "index.html"));
 });
