@@ -152,44 +152,29 @@ function loadHistory() {
     });
   });
 }
-
 /* ---------------- FAN STATUS (ESP32 AUTOMATIC) ---------------- */
-onValue(ref(db, "esp32FanStatus"), (snap) => {
-  if (snap.exists()) {
-    const data = snap.val(); // { status, timestamp }
-    fanStatus = data.status;
-    
-    // Update status text
-    statusText.textContent = fanStatus;
+onValue(ref(db, "fanStatus"), (snap) => {
+  if (!snap.exists()) return;
 
-    // Update the status box color (green/red)
-    const statusBox = document.querySelector(".status-box");
-    statusBox.classList.remove("on", "off");
-    statusBox.classList.add(fanStatus.toLowerCase());
+  const data = snap.val(); // { status, temperature, updatedBy }
 
-    // Save automatic ON/OFF usage logs with date & time only
-    const logTime = new Date(data.timestamp);
+  fanStatus = data.status;
 
-    // Check last log to avoid duplicate entries
-    onValue(ref(db, "usageHistory"), (historySnap) => {
-      let lastLog = null;
-      historySnap.forEach((child) => {
-        const val = child.val();
-        if (val.name === "ESP32") lastLog = val;
-      });
+  // Update status text
+  statusText.textContent = fanStatus;
 
-      // Only push new log if status changed
-      if (!lastLog || lastLog.action !== (fanStatus === "ON" ? "Fan ON" : "Fan OFF")) {
-        push(ref(db, "usageHistory"), {
-          name: "ESP32",
-          role: "System",
-          action: fanStatus === "ON" ? "Fan ON" : "Fan OFF",
-          date: logTime.toLocaleDateString(),
-          time: logTime.toLocaleTimeString()
-        });
-      }
-    });
+  // Update the status box color
+  const statusBox = document.querySelector(".status-box");
+  statusBox.classList.remove("on", "off");
+  statusBox.classList.add(fanStatus.toLowerCase());
+
+  // OPTIONAL: show ESP32 temperature if you have an element
+  const espTempEl = document.getElementById("espTemp");
+  if (espTempEl && data.temperature !== undefined) {
+    espTempEl.textContent = `${data.temperature} °C`;
   }
+
+  console.log("ESP32 AUTO:", fanStatus, "Temp:", data.temperature);
 });
 
 
