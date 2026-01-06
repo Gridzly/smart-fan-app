@@ -1,46 +1,39 @@
-import { auth, db, googleProvider } from "./firebaseConfig.js";
-import { signInWithEmailAndPassword, signInWithPopup } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { ref, set, get } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { auth, db } from "./firebaseConfig.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const loginForm = document.getElementById("loginForm");
-const googleBtn = document.getElementById("googleLoginBtn");
 
-/* EMAIL + PASSWORD LOGIN */
-loginForm.addEventListener("submit", (e) => {
+/* ----------------------------- EMAIL + PASSWORD LOGIN ----------------------------- */
+loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
-  signInWithEmailAndPassword(auth, email, password)
-    .then(() => {
-      // Name already exists from signup → dashboard will read it
-      window.location.href = "dashboard.html";
-    })
-    .catch((err) => alert(err.message));
-});
-
-/* GOOGLE LOGIN */
-googleBtn.addEventListener("click", async () => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
 
-    const userRef = ref(db, "users/" + user.uid);
+    // Fetch the user data from the database
+    const userRef = ref(db, "users/" + uid);
     const snapshot = await get(userRef);
 
-    // Save ONLY if user does not exist
     if (!snapshot.exists()) {
-      await set(userRef, {
-        name: user.displayName,
-        email: user.email,
-        role: "Google User"
-      });
+      alert("User not found in database!");
+      return;
     }
 
+    const userData = snapshot.val();
+    console.log("User logged in with role:", userData.role);
+
+    // Store role and name for dashboard use
+    localStorage.setItem("role", userData.role);
+    localStorage.setItem("name", userData.name);
+
+    // Redirect to dashboard
     window.location.href = "dashboard.html";
+
   } catch (err) {
     alert(err.message);
   }
