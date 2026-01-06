@@ -39,14 +39,14 @@ onAuthStateChanged(auth, async (user) => {
   // Display name AND role
   welcomeMsg.textContent = `Welcome, ${currentUserName} (${currentUserRole})`;
 
-  // Save login action with date & time
+  // Save login action with date & time (12-hour format)
   const now = new Date();
   push(ref(db, "usageHistory"), {
     name: currentUserName,
     role: currentUserRole,
     action: "Logged In",
     date: now.toLocaleDateString(),
-    time: now.toLocaleTimeString()
+    time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
   });
 
   loadHistory();
