@@ -3,61 +3,133 @@
 <head>
   <meta charset="UTF-8">
   <title>Dashboard - Smart Fan</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script type="module" src="js/dashboard.js" defer></script>
+  <style>
+    body {
+      margin:0;
+      font-family:'Segoe UI', Arial, sans-serif;
+      background:#06402B;
+      color:#052e16;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      min-height:100vh;
+      padding:16px;
+    }
+
+    .dashboard-container {
+      max-width:540px;
+      width:100%;
+      background:#96D9C0;
+      border-radius:18px;
+      padding:24px;
+      box-shadow:0 10px 26px rgba(0,0,0,0.12);
+    }
+
+    h2 { margin:0; color:#052e16; font-size:22px; }
+    p { color:#052e16; }
+
+    .header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:16px;
+    }
+
+    #logoutBtn {
+      border:none;
+      background:#e74c3c;
+      color:#fff;
+      border-radius:50%;
+      width:40px;
+      height:40px;
+      font-weight:bold;
+      cursor:pointer;
+      font-size:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .card-container {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .card {
+      background:#d1fae5;
+      border-radius:14px;
+      padding:12px;
+      text-align:center;
+      box-shadow:0 4px 14px rgba(0,0,0,0.2);
+      flex:1 1 18%; /* 5 cards fit in a row */
+      min-width: 60px;
+    }
+
+    h3 { margin-bottom:12px; color:#052e16; font-size:16px; }
+    ul { padding-left:18px; }
+    li { margin-bottom:12px; padding:14px; border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,0.2); background:#fff; color:#052e16; }
+
+    #statusBox {
+      margin:14px 0;
+      padding:16px;
+      border-radius:14px;
+      text-align:center;
+      box-shadow:0 6px 18px rgba(0,0,0,0.08);
+      border-left:6px solid #16a34a;
+      background:#d1fae5;
+      color:#052e16;
+    }
+
+    .section {
+      background:#ffffff;
+      padding:16px;
+      border-radius:16px;
+      margin-top:16px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    }
+
+  </style>
 </head>
+
 <body>
+  <div class="dashboard-container">
+    <!-- HEADER -->
+    <div class="header">
+      <h2>Smart Fan Dashboard</h2>
+      <button id="logoutBtn">⏻</button>
+    </div>
 
-<div class="dashboard-container">
+    <!-- WELCOME -->
+    <p id="welcomeMsg">Checking session...</p>
 
-  <div class="top-bar">
-    <h2>Smart Fan Dashboard</h2>
+    <!-- SYSTEM STATUS -->
+    <div id="statusBox">
+      <span>System Status</span><br>
+      <strong id="currentStatusText">FETCHING...</strong>
+    </div>
+
+    <!-- RECENT USERS -->
+    <div class="section">
+      <h3>Recently Active Users</h3>
+      <ul id="recentUsers"></ul>
+    </div>
+
+    <!-- HOURLY HEAT / TEMPERATURE -->
+    <div class="section">
+      <h3>Hourly Heat / Temperature</h3>
+      <div id="weatherContainer" class="card-container"></div>
+    </div>
+
+    <!-- USAGE HISTORY -->
+    <div class="section">
+      <h3>Usage History</h3>
+      <div id="usageHistoryList"></div>
+    </div>
+
   </div>
-
-  <!-- Theme toggle switch -->
-  <div class="theme-switch-wrapper">
-    <span class="switch-label">LIGHT MODE</span>
-    <label class="switch">
-      <input type="checkbox" id="themeToggle">
-      <span class="slider"></span>
-    </label>
-  </div>
-
-  <!-- Welcome message -->
-  <p id="welcomeMsg">Checking session...</p>
-
-  <!-- Current system status (ESP32 automatic) -->
-  <div class="status-box">
-    <span class="status-label">System Status</span><br>
-    <strong id="currentStatusText">FETCHING...</strong>
-  </div>
-
-  <!-- Weather card -->
-  <div class="card" id="weatherCard">
-    <h3>CvSU Imus Campus Weather</h3>
-    <p><strong>Location:</strong>CWHW+9VJ Cavite Civic Center, Cavite, 4103 Cavite</p>
-    <p id="temperature">Temperature: Fetching...</p>
-    <p id="weatherCondition">Condition: Fetching...</p>
-  </div>
-
-  <!-- Removed manual fan button -->
-
-  <!-- Recently active users -->
-  <div class="card">
-    <h3>Recently Active Users</h3>
-    <ul id="recentUsers" class="user-list"></ul>
-  </div>
-
-  <!-- Usage history -->
-  <div class="card">
-    <h3>Usage History</h3>
-    <div id="usageHistoryList" class="history-list"></div>
-  </div>
-
-  <!-- Logout button -->
-  <button id="logoutBtn" class="logout-btn">Logout</button>
-
-</div>
-
 </body>
 </html>

@@ -1,47 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sign Up - Smart Fan</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script type="module" src="js/signup.js"></script>
+<meta charset="UTF-8">
+<title>Sign Up - Smart Fan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI', Arial, sans-serif; background:#06402B; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:16px; }
+  .signup-container { background:#96D9C0; padding:24px; border-radius:20px; width:100%; max-width:400px; box-shadow:0 10px 26px rgba(0,0,0,0.12); }
+  h2 { text-align:center; margin-bottom:8px; color:#052e16; font-size:22px; }
+  .subtitle { text-align:center; margin-bottom:24px; color:#052e16; font-size:14px; }
+  form { display:flex; flex-direction:column; gap:14px; }
+  .input-group { display:flex; flex-direction:column; }
+  label { margin-bottom:6px; font-size:14px; font-weight:600; color:#052e16; }
+  input, select { width:100%; padding:12px 14px; border-radius:12px; border:1px solid #ccc; font-size:14px; outline:none; transition:0.3s; }
+  input:focus, select:focus { border-color:#16a34a; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+  .name-container { display:flex; gap:12px; flex-wrap:wrap; }
+  .name-container .input-group { flex:1 1 48%; }
+  #passwordStrength { font-size:12px; margin-top:6px; font-weight:600; min-height:18px; }
+  button[type="submit"] { padding:14px; border:none; border-radius:12px; background:#052e16; color:#fff; font-weight:bold; cursor:pointer; transition:0.2s; }
+  button[type="submit"]:hover { background:#016636; }
+  .login-link { margin-top:12px; text-align:center; font-size:14px; }
+  .login-link a { color:#052e16; font-weight:600; text-decoration:none; }
+  .login-link a:hover { text-decoration:underline; }
+</style>
 </head>
 <body>
-  <div class="signup-container">
-    <h2>Smart Fan App</h2>
-    <p class="subtitle">Create your account</p>
+<div class="signup-container">
+  <h2>Smart Fan App</h2>
+  <p class="subtitle">Create your account</p>
 
-    <form id="signupForm">
-      
-
+  <form id="signupForm">
+    <div class="name-container">
       <div class="input-group">
-        <input id="name" type="text" required>
-        <label>Full Name</label>
+        <label for="firstName">First Name</label>
+        <input id="firstName" type="text" required>
       </div>
-
       <div class="input-group">
-        <select id="role" required>
-          <option value="" disabled selected>Select Classification</option>
-          <option>Student</option>
-          <option>Teacher</option>
-          <option>Guard</option>
-        </select>
+        <label for="lastName">Last Name</label>
+        <input id="lastName" type="text" required>
       </div>
+    </div>
 
-      <div class="input-group">
-        <input id="email" type="email" required>
-        <label>Email</label>
-      </div>
+    <div class="input-group">
+      <label for="role">Select Classification</label>
+      <select id="role" required>
+        <option value="" disabled selected>Select your role</option>
+        <option>Student</option>
+        <option>Teacher</option>
+        <option>Guard</option>
+      </select>
+    </div>
 
-      <div class="input-group small-input">
-        <input id="password" type="password" required>
-        <label>Password</label>
-      </div>
+    <div class="input-group">
+      <label for="email">Email</label>
+      <input id="email" type="email" required placeholder="example@gmail.com">
+    </div>
 
-      <button type="submit" id="signupBtn">Sign Up</button>
-    </form>
+    <div class="input-group">
+      <label for="password">Password</label>
+      <input id="password" type="password" required placeholder="********">
+      <div id="passwordStrength"></div>
+    </div>
 
-    <p class="login-link">Already have an account? <a href="index.html">Login</a></p>
-  </div>
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <p class="login-link">Already have an account? <a href="index.html">Login</a></p>
+</div>
+
+<script type="module" src="./js/signup.js"></script>
 </body>
 </html>

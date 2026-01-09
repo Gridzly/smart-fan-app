@@ -3,34 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <title>Login - Smart Fan</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script type="module" src="js/login.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Your existing CSS */
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family:'Segoe UI', Arial, sans-serif;
+      background:#06402B;
+      color:#052e16;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      padding:16px;
+    }
+    .login-container {
+      background:#96D9C0;
+      padding:24px;
+      border-radius:20px;
+      width:100%;
+      max-width:400px;
+      box-shadow:0 10px 26px rgba(0,0,0,0.12);
+    }
+    h2 { text-align:center; margin-bottom:8px; color:#052e16; font-size:22px; }
+    .subtitle { text-align:center; margin-bottom:24px; color:#052e16; font-size:14px; }
+    form { display:flex; flex-direction:column; gap:14px; }
+    .input-group { display:flex; flex-direction:column; }
+    .input-group label { margin-bottom:6px; font-size:14px; font-weight:600; color:#052e16; }
+    .input-group input { width:100%; padding:12px 14px; border-radius:12px; border:1px solid #ccc; font-size:14px; outline:none; transition:0.3s; }
+    .input-group input:focus { border-color:#16a34a; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+    button[type="submit"] { padding:14px; border:none; border-radius:12px; background:#052e16; color:#fff; font-weight:bold; cursor:pointer; transition:0.2s; }
+    button[type="submit"]:hover { background:#016636; }
+    .signup-link { margin-top:12px; text-align:center; font-size:14px; }
+    .signup-link a { color:#052e16; font-weight:600; text-decoration:none; }
+    .signup-link a:hover { text-decoration:underline; }
+  </style>
 </head>
 <body>
   <div class="login-container">
     <h2>Smart Fan App</h2>
     <p class="subtitle">Login to your account</p>
 
-    <!-- Email/Password Login -->
     <form id="loginForm">
       <div class="input-group">
-        <input id="email" type="email" required>
-        <label>Email</label>
+        <label for="email">Email</label>
+        <input id="email" type="email" required placeholder="example@gmail.com">
       </div>
 
       <div class="input-group">
-        <input id="password" type="password" required>
-        <label>Password</label>
+        <label for="password">Password</label>
+        <input id="password" type="password" required placeholder="********">
       </div>
 
-      <button type="submit">Login</button>
+      <button type="submit" id="loginBtn">Login</button>
     </form>
-
-    <!-- Google button removed or repurposed -->
-    <!-- <p>Or login with Google:</p>
-    <button id="googleLoginBtn" class="google-btn">Sign in with Google</button> -->
 
     <p class="signup-link">Don't have an account? <a href="signup.html">Sign Up</a></p>
   </div>
+
+  <!-- Correct JS path -->
+  <script type="module" src="./js/login.js" defer></script>
 </body>
 </html>

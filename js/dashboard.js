@@ -1,15 +1,17 @@
-import { auth, db } from "./firebaseConfig.js"; 
-import { onAuthStateChanged, signOut } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { ref, push, onValue, get } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { auth, db } from "./firebaseConfig.js";
+import { onAuthStateChanged, signOut } 
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { ref, push, onValue, get, query, limitToLast } 
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+/* ---------------- ELEMENTS ---------------- */
 const welcomeMsg = document.getElementById("welcomeMsg");
 const logoutBtn = document.getElementById("logoutBtn");
 const usageHistoryList = document.getElementById("usageHistoryList");
 const recentUsers = document.getElementById("recentUsers");
 const statusText = document.getElementById("currentStatusText");
-const themeToggle = document.getElementById("themeToggle");
+const statusBox = document.getElementById("statusBox");
+const weatherContainer = document.getElementById("weatherContainer");
 
 let currentUserName = "";
 let currentUserRole = "";
@@ -23,23 +25,18 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const snap = await get(ref(db, "users/" + user.uid));
-  
-  currentUserName =
-    snap.exists() && snap.val().name
-      ? snap.val().name
-      : user.displayName
-        ? user.displayName
-        : "Unknown User";
 
-  currentUserRole =
-    snap.exists() && snap.val().role
-      ? snap.val().role
-      : "Unknown Role";
+  currentUserName = snap.exists() && snap.val().name
+    ? snap.val().name
+    : user.displayName || "Unknown User";
 
-  // Display name AND role
+  currentUserRole = snap.exists() && snap.val().role
+    ? snap.val().role
+    : "User";
+
   welcomeMsg.textContent = `Welcome, ${currentUserName} (${currentUserRole})`;
 
-  // Save login action with date & time (12-hour format)
+  // Log login
   const now = new Date();
   push(ref(db, "usageHistory"), {
     name: currentUserName,
@@ -50,176 +47,161 @@ onAuthStateChanged(auth, async (user) => {
   });
 
   loadHistory();
+  loadRecentUsers();
+  loadHeatLevels();
 });
 
-/* ---------------- LOAD HISTORY ---------------- */
-function loadHistory() {
-  onValue(ref(db, "usageHistory"), (snapshot) => {
-    usageHistoryList.innerHTML = "";
+/* ---------------- RECENT USERS ---------------- */
+function loadRecentUsers() {
+  const recentQuery = query(ref(db, "usageHistory"), limitToLast(25));
+  onValue(recentQuery, (snapshot) => {
     recentUsers.innerHTML = "";
+    const userMap = new Map();
 
-    const onColumn = document.createElement("div");
-    const offColumn = document.createElement("div");
-    onColumn.style.flex = "1";
-    offColumn.style.flex = "1";
-    onColumn.innerHTML = "<h4>Fan ON</h4>";
-    offColumn.innerHTML = "<h4>Fan OFF</h4>";
-
-    const usersMap = new Map(); // last active users
-    const loginHistoryMap = new Map(); // login history
-
-    snapshot.forEach((child) => {
+    snapshot.forEach(child => {
       const d = child.val();
-
-      // Add last active user info
-      if (
-        !usersMap.has(d.name) ||
-        new Date(`${d.date} ${d.time}`) >
-          new Date(`${usersMap.get(d.name).date} ${usersMap.get(d.name).time}`)
-      ) {
-        usersMap.set(d.name, { date: d.date, time: d.time, role: d.role || "Unknown" });
-      }
-
-      // Store login history
-      if (d.action === "Logged In") {
-        if (!loginHistoryMap.has(d.name)) loginHistoryMap.set(d.name, []);
-        loginHistoryMap.get(d.name).push({ date: d.date, time: d.time });
-      }
-
-      const div = document.createElement("div");
-      div.style.marginBottom = "8px";
-      div.style.borderBottom = "1px solid rgba(0,0,0,0.1)";
-      div.style.paddingBottom = "4px";
-
-      // Only display date & time for automatic ESP32 logs or ON/OFF actions
-      div.innerHTML = `
-        <strong>${d.name} (${d.role || "Unknown"})</strong><br>
-        ${d.action}<br>
-        <small>${d.date} • ${d.time}</small>
-      `;
-
-      if (d.action.includes("ON")) {
-        onColumn.appendChild(div);
-      } else if (d.action.includes("OFF")) {
-        offColumn.appendChild(div);
+      if (!d?.name || !d?.date || !d?.time) return;
+      if (d.action !== "Logged In") return;
+      if (!userMap.has(d.name) || new Date(`${d.date} ${d.time}`) > new Date(`${userMap.get(d.name).date} ${userMap.get(d.name).time}`)) {
+        userMap.set(d.name, { date: d.date, time: d.time });
       }
     });
 
-    const container = document.createElement("div");
-    container.style.display = "flex";
-    container.style.gap = "20px";
-    container.appendChild(onColumn);
-    container.appendChild(offColumn);
-    usageHistoryList.appendChild(container);
-
-    /* -------- RECENT USERS -------- */
-    usersMap.forEach((val, name) => {
+    [...userMap.entries()].reverse().forEach(([name, info]) => {
       const li = document.createElement("li");
-
-      const header = document.createElement("div");
-      header.textContent = `${name} (${val.role}) • ${val.date} • ${val.time}`;
-      header.style.fontWeight = "600";
-
-      const toggle = document.createElement("span");
-      toggle.textContent = "See more";
-      toggle.style.color = "#3498db";
-      toggle.style.cursor = "pointer";
-      toggle.style.display = "block";
-      toggle.style.marginTop = "4px";
-
-      const historyBox = document.createElement("div");
-      historyBox.style.display = "none";
-      historyBox.style.marginTop = "6px";
-
-      if (loginHistoryMap.has(name)) {
-        loginHistoryMap.get(name).forEach((e) => {
-          const small = document.createElement("small");
-          small.innerHTML = `${e.date} • ${e.time}<br>`;
-          historyBox.appendChild(small);
-        });
-      }
-
-      toggle.addEventListener("click", () => {
-        const isOpen = historyBox.style.display === "block";
-        historyBox.style.display = isOpen ? "none" : "block";
-        toggle.textContent = isOpen ? "See more" : "Hide";
-      });
-
-      li.appendChild(header);
-      li.appendChild(toggle);
-      li.appendChild(historyBox);
+      li.style.listStyle = "none";
+      li.style.marginBottom = "12px";
+      li.style.padding = "14px";
+      li.style.borderRadius = "16px";
+      li.style.boxShadow = "0 6px 18px rgba(0,0,0,0.2)";
+      li.style.background = "#96D9C0";
+      li.style.color = "#000000";
+      li.innerHTML = `<strong>${name}</strong><br><small style="opacity:0.7">${info.date} • ${info.time}</small>`;
       recentUsers.appendChild(li);
     });
   });
 }
-/* ---------------- FAN STATUS (ESP32 AUTOMATIC) ---------------- */
-onValue(ref(db, "fanStatus"), (snap) => {
-  if (!snap.exists()) return;
 
-  const data = snap.val(); // { status, temperature, updatedBy }
+/* ---------------- USAGE HISTORY ---------------- */
+function loadHistory() {
+  onValue(ref(db, "usageHistory"), (snapshot) => {
+    usageHistoryList.innerHTML = "";
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "grid";
+    wrapper.style.gridTemplateColumns = window.innerWidth < 768 ? "1fr" : "1fr 1fr";
+    wrapper.style.gap = "16px";
 
-  fanStatus = data.status;
+    const onCol = createColumn("#96D9C0", "FAN ON HISTORY");
+    const offCol = createColumn("#96D9C0", "FAN OFF HISTORY");
 
-  // Update status text
-  statusText.textContent = fanStatus;
+    let latestFanStatus = "OFF";
 
-  // Update the status box color
-  const statusBox = document.querySelector(".status-box");
-  statusBox.classList.remove("on", "off");
-  statusBox.classList.add(fanStatus.toLowerCase());
+    snapshot.forEach(child => {
+      const d = child.val();
+      if (!d?.action || !d?.date || !d?.time) return;
+      const isON = d.action.toUpperCase().includes("ON");
+      const isOFF = d.action.toUpperCase().includes("OFF");
+      if (!isON && !isOFF) return;
+      latestFanStatus = isON ? "ON" : "OFF";
 
-  // OPTIONAL: show ESP32 temperature if you have an element
-  const espTempEl = document.getElementById("espTemp");
-  if (espTempEl && data.temperature !== undefined) {
-    espTempEl.textContent = `${data.temperature} °C`;
-  }
+      const card = document.createElement("div");
+      card.style.background = isON ? "#A8E6CF" : "#FFB3B3";
+      card.style.borderRadius = "14px";
+      card.style.padding = "12px";
+      card.style.marginBottom = "10px";
+      card.innerHTML = `<strong>${d.name || "Arduino R4"}</strong><br>Fan ${isON ? "ON" : "OFF"}<br><small style="opacity:0.7">${d.date} • ${d.time}</small>`;
+      isON ? onCol.appendChild(card) : offCol.appendChild(card);
+    });
 
-  console.log("ESP32 AUTO:", fanStatus, "Temp:", data.temperature);
-});
+    statusText.textContent = latestFanStatus;
+    statusText.style.color = latestFanStatus === "ON" ? "#16a34a" : "#dc2626";
+    statusBox.style.borderLeft = `6px solid ${latestFanStatus === "ON" ? "#16a34a" : "#dc2626"}`;
 
+    wrapper.appendChild(onCol);
+    wrapper.appendChild(offCol);
+    usageHistoryList.appendChild(wrapper);
+  });
+}
 
-/* ---------------- THEME TOGGLE ---------------- */
-const themeToggleInput = document.getElementById("themeToggle");
-const themeLabel = document.querySelector(".switch-label");
+/* ---------------- COLUMN HELPER ---------------- */
+function createColumn(bg, title) {
+  const col = document.createElement("div");
+  col.style.background = bg;
+  col.style.borderRadius = "18px";
+  col.style.padding = "14px";
+  col.style.boxShadow = "0 6px 20px rgba(0,0,0,0.2)";
+  col.style.maxHeight = "420px";
+  col.style.overflowY = "auto";
 
-themeToggleInput.checked = document.body.classList.contains("dark");
-themeLabel.textContent = themeToggleInput.checked ? "NIGHT MODE" : "LIGHT MODE";
+  const h = document.createElement("h3");
+  h.textContent = title;
+  h.style.textAlign = "center";
+  h.style.color = "#000000";
+  h.style.marginBottom = "12px";
+  col.appendChild(h);
 
-themeToggleInput.addEventListener("change", () => {
-  document.body.classList.toggle("dark");
-  themeLabel.textContent = document.body.classList.contains("dark")
-    ? "NIGHT MODE"
-    : "LIGHT MODE";
-});
+  return col;
+}
 
-/* ---------------- WEATHER ---------------- */
-const temperatureEl = document.getElementById("temperature");
-const weatherConditionEl = document.getElementById("weatherCondition");
-const OPENWEATHER_API_KEY = "8387b43714e736b0d4296517564e1201";
-const CAVITE_LAT = 14.4586;
-const CAVITE_LON = 120.9360;
+/* ---------------- HOURLY HEAT / TEMPERATURE ---------------- */
+const API_KEY = "8387b43714e736b0d4296517564e1201";
+const LAT = 14.43;
+const LON = 120.95;
+const UNITS = "metric";
 
-async function loadCaviteWeather() {
+async function loadHeatLevels() {
   try {
     const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${CAVITE_LAT}&lon=${CAVITE_LON}&appid=${OPENWEATHER_API_KEY}&units=metric`
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${LAT}&lon=${LON}&units=${UNITS}&appid=${API_KEY}`
     );
+    if (!res.ok) throw new Error("Failed to fetch weather data");
     const data = await res.json();
-    if (data.cod !== 200) throw new Error(data.message);
 
-    temperatureEl.textContent = `Temperature: ${Math.round(data.main.temp)} °C`;
-    weatherConditionEl.textContent = `Condition: ${data.weather[0].description}`;
+    weatherContainer.innerHTML = "";
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const hoursToShow = [];
+    for (let i = 5; i >= 1; i--) {
+      hoursToShow.push((currentHour - i + 24) % 24);
+    }
+
+    hoursToShow.forEach(hour => {
+      const hourData = data.list.reduce((prev, curr) => {
+        const forecastHour = new Date(curr.dt_txt).getHours();
+        return Math.abs(forecastHour - hour) < Math.abs(new Date(prev.dt_txt).getHours() - hour) ? curr : prev;
+      }, data.list[0]);
+
+      const temp = hourData.main.temp;
+      const desc = hourData.weather[0].main;
+      const icon = `https://openweathermap.org/img/wn/${hourData.weather[0].icon}@2x.png`;
+
+      const hour12 = ((hour + 11) % 12) + 1;
+      const ampm = hour >= 12 ? "PM" : "AM";
+
+      const card = document.createElement("div");
+      card.style.background = "#d1fae5";
+      card.style.borderRadius = "14px";
+      card.style.padding = "12px";
+      card.style.textAlign = "center";
+      card.style.boxShadow = "0 4px 14px rgba(0,0,0,0.2)";
+      card.style.flex = "1";
+      card.style.minWidth = "0";
+
+      card.innerHTML = `<strong>${hour12}:00 ${ampm}</strong><br>
+                        <img src="${icon}" style="width:40px;height:40px;"><br>
+                        <span style="font-weight:bold;">${temp.toFixed(1)}°C</span><br>
+                        <small>${desc}</small>`;
+
+      weatherContainer.appendChild(card);
+    });
   } catch (err) {
-    temperatureEl.textContent = "Temperature: Error";
-    weatherConditionEl.textContent = "Condition: Unable to load";
-    console.error("Weather error:", err.message);
+    console.error("Heat API Error:", err);
+    weatherContainer.innerHTML = "<p style='color:red;'>Failed to load heat data</p>";
   }
 }
 
-loadCaviteWeather();
-setInterval(loadCaviteWeather, 300000);
-
 /* ---------------- LOGOUT ---------------- */
 logoutBtn.addEventListener("click", () => {
-  signOut(auth).then(() => (window.location.href = "index.html"));
+  signOut(auth).then(() => window.location.href = "index.html");
 });
