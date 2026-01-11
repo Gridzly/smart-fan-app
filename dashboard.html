@@ -5,6 +5,7 @@
   <title>Dashboard - Smart Fan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script type="module" src="js/dashboard.js" defer></script>
+
   <style>
     body {
       margin:0;
@@ -27,8 +28,9 @@
       box-shadow:0 10px 26px rgba(0,0,0,0.12);
     }
 
-    h2 { margin:0; color:#052e16; font-size:22px; }
-    p { color:#052e16; }
+    h2 { margin:0; font-size:22px; }
+    h3 { margin-bottom:12px; font-size:16px; }
+    p { margin:6px 0; }
 
     .header {
       display:flex;
@@ -44,44 +46,8 @@
       border-radius:50%;
       width:40px;
       height:40px;
-      font-weight:bold;
-      cursor:pointer;
       font-size:18px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .card-container {
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .card {
-      background:#d1fae5;
-      border-radius:14px;
-      padding:12px;
-      text-align:center;
-      box-shadow:0 4px 14px rgba(0,0,0,0.2);
-      flex:1 1 18%; /* 5 cards fit in a row */
-      min-width: 60px;
-    }
-
-    h3 { margin-bottom:12px; color:#052e16; font-size:16px; }
-    ul { padding-left:18px; }
-    li { margin-bottom:12px; padding:14px; border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,0.2); background:#fff; color:#052e16; }
-
-    #statusBox {
-      margin:14px 0;
-      padding:16px;
-      border-radius:14px;
-      text-align:center;
-      box-shadow:0 6px 18px rgba(0,0,0,0.08);
-      border-left:6px solid #16a34a;
-      background:#d1fae5;
-      color:#052e16;
+      cursor:pointer;
     }
 
     .section {
@@ -92,11 +58,69 @@
       box-shadow:0 8px 20px rgba(0,0,0,0.08);
     }
 
+    #statusBox {
+      margin:14px 0;
+      padding:16px;
+      border-radius:14px;
+      text-align:center;
+      background:#d1fae5;
+      border-left:6px solid #16a34a;
+      box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    ul { padding:0; margin:0; }
+
+    .card-container {
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      justify-content:center;
+    }
+
+    .card {
+      background:#d1fae5;
+      border-radius:14px;
+      padding:12px;
+      text-align:center;
+      box-shadow:0 4px 14px rgba(0,0,0,0.2);
+      flex: 1 1 90px;
+      max-width: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card img {
+      width: 50px;
+      height: 50px;
+      margin: 6px 0;
+      /* Blue cloud effect with soft glow */
+      filter: hue-rotate(200deg) brightness(1.3) drop-shadow(0 0 6px #3498db);
+      border-radius: 50%;
+    }
+
+    .card div {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    /* ===== OTHER STYLES REMAIN THE SAME ===== */
+    .recent-user { margin-bottom: 12px; }
+    .toggle-history { color: #2ecc71; font-size: 12px; cursor: pointer; }
+    .history-box { display: none; margin-top: 6px; font-size: 12px; }
+    .history-box.open { display: block; }
   </style>
 </head>
 
 <body>
   <div class="dashboard-container">
+
     <!-- HEADER -->
     <div class="header">
       <h2>Smart Fan Dashboard</h2>
@@ -106,7 +130,7 @@
     <!-- WELCOME -->
     <p id="welcomeMsg">Checking session...</p>
 
-    <!-- SYSTEM STATUS -->
+    <!-- STATUS -->
     <div id="statusBox">
       <span>System Status</span><br>
       <strong id="currentStatusText">FETCHING...</strong>
@@ -115,10 +139,22 @@
     <!-- RECENT USERS -->
     <div class="section">
       <h3>Recently Active Users</h3>
+      <button id="toggleRecentUsers"
+        style="
+          margin-bottom:12px;
+          padding:8px 14px;
+          border:none;
+          border-radius:10px;
+          background:#16a34a;
+          color:white;
+          font-weight:bold;
+          cursor:pointer;">
+        See More
+      </button>
       <ul id="recentUsers"></ul>
     </div>
 
-    <!-- HOURLY HEAT / TEMPERATURE -->
+    <!-- WEATHER -->
     <div class="section">
       <h3>Hourly Heat / Temperature</h3>
       <div id="weatherContainer" class="card-container"></div>

@@ -1,7 +1,7 @@
 import { auth, db } from "./firebaseConfig.js";
-import { onAuthStateChanged, signOut } 
+import { onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { ref, push, onValue, get, query, limitToLast } 
+import { ref, push, onValue, get, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 /* ---------------- ELEMENTS ---------------- */
@@ -12,10 +12,12 @@ const recentUsers = document.getElementById("recentUsers");
 const statusText = document.getElementById("currentStatusText");
 const statusBox = document.getElementById("statusBox");
 const weatherContainer = document.getElementById("weatherContainer");
+const toggleRecentBtn = document.getElementById("toggleRecentUsers");
 
+/* ---------------- STATE ---------------- */
 let currentUserName = "";
 let currentUserRole = "";
-let fanStatus = "OFF";
+let showAllRecentUsers = false;
 
 /* ---------------- AUTH CHECK ---------------- */
 onAuthStateChanged(auth, async (user) => {
@@ -36,89 +38,135 @@ onAuthStateChanged(auth, async (user) => {
 
   welcomeMsg.textContent = `Welcome, ${currentUserName} (${currentUserRole})`;
 
-  // Log login
+  // LOG LOGIN
   const now = new Date();
   push(ref(db, "usageHistory"), {
     name: currentUserName,
     role: currentUserRole,
     action: "Logged In",
     date: now.toLocaleDateString(),
-    time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+    time: now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    })
   });
 
-  loadHistory();
   loadRecentUsers();
+  loadHistory();
   loadHeatLevels();
 
-  // Auto-refresh every 5 minutes
   setInterval(loadHeatLevels, 5 * 60 * 1000);
 });
 
 /* ---------------- RECENT USERS ---------------- */
 function loadRecentUsers() {
-  const recentQuery = query(ref(db, "usageHistory"), limitToLast(25));
+  const recentQuery = query(ref(db, "usageHistory"), limitToLast(100));
+
   onValue(recentQuery, (snapshot) => {
     recentUsers.innerHTML = "";
-    const userMap = new Map();
+
+    const logins = [];
 
     snapshot.forEach(child => {
       const d = child.val();
       if (!d?.name || !d?.date || !d?.time) return;
       if (d.action !== "Logged In") return;
-      if (!userMap.has(d.name) || new Date(`${d.date} ${d.time}`) > new Date(`${userMap.get(d.name).date} ${userMap.get(d.name).time}`)) {
-        userMap.set(d.name, { date: d.date, time: d.time });
-      }
+
+      const dateTime = new Date(`${d.date} ${d.time}`);
+      logins.push({ ...d, dateTime });
     });
 
-    [...userMap.entries()].reverse().forEach(([name, info]) => {
+    logins.sort((a, b) => b.dateTime - a.dateTime);
+
+    const grouped = {};
+    logins.forEach(l => {
+      if (!grouped[l.name]) grouped[l.name] = [];
+      grouped[l.name].push(l);
+    });
+
+    const users = Object.entries(grouped);
+    const visibleUsers = showAllRecentUsers ? users : users.slice(0, 4);
+
+    visibleUsers.forEach(([name, records]) => {
       const li = document.createElement("li");
       li.style.listStyle = "none";
-      li.style.marginBottom = "12px";
       li.style.padding = "14px";
+      li.style.marginBottom = "12px";
       li.style.borderRadius = "16px";
-      li.style.boxShadow = "0 6px 18px rgba(0,0,0,0.2)";
       li.style.background = "#96D9C0";
-      li.style.color = "#000000";
-      li.innerHTML = `<strong>${name}</strong><br><small style="opacity:0.7">${info.date} • ${info.time}</small>`;
+      li.style.boxShadow = "0 6px 18px rgba(0,0,0,.2)";
+
+      let html = `<strong>${name}</strong><br>`;
+
+      records.forEach((r, i) => {
+        if (i === 0) {
+          html += `<small style="opacity:.8">Latest: ${r.date} • ${r.time}</small><br>`;
+        } else if (showAllRecentUsers) {
+          html += `<small style="opacity:.6">${r.date} • ${r.time}</small><br>`;
+        }
+      });
+
+      li.innerHTML = html;
       recentUsers.appendChild(li);
     });
+
+    toggleRecentBtn.textContent = showAllRecentUsers ? "Hide" : "See More";
   });
 }
+
+/* ---------------- TOGGLE BUTTON ---------------- */
+toggleRecentBtn.addEventListener("click", () => {
+  showAllRecentUsers = !showAllRecentUsers;
+  loadRecentUsers();
+});
 
 /* ---------------- USAGE HISTORY ---------------- */
 function loadHistory() {
   onValue(ref(db, "usageHistory"), (snapshot) => {
     usageHistoryList.innerHTML = "";
+
     const wrapper = document.createElement("div");
     wrapper.style.display = "grid";
-    wrapper.style.gridTemplateColumns = window.innerWidth < 768 ? "1fr" : "1fr 1fr";
+    wrapper.style.gridTemplateColumns =
+      window.innerWidth < 768 ? "1fr" : "1fr 1fr";
     wrapper.style.gap = "16px";
 
     const onCol = createColumn("#96D9C0", "FAN ON HISTORY");
     const offCol = createColumn("#96D9C0", "FAN OFF HISTORY");
 
-    let latestFanStatus = "OFF";
+    let latestStatus = "OFF";
 
     snapshot.forEach(child => {
       const d = child.val();
       if (!d?.action || !d?.date || !d?.time) return;
+
       const isON = d.action.toUpperCase().includes("ON");
       const isOFF = d.action.toUpperCase().includes("OFF");
       if (!isON && !isOFF) return;
-      latestFanStatus = isON ? "ON" : "OFF";
+
+      latestStatus = isON ? "ON" : "OFF";
 
       const card = document.createElement("div");
       card.style.background = isON ? "#A8E6CF" : "#FFB3B3";
       card.style.borderRadius = "14px";
       card.style.padding = "12px";
       card.style.marginBottom = "10px";
-      card.innerHTML = `<strong>${d.name || "Arduino R4"}</strong><br>Fan ${isON ? "ON" : "OFF"}<br><small style="opacity:0.7">${d.date} • ${d.time}</small>`;
+
+      card.innerHTML = `
+        <strong>${d.name || "Arduino R4"}</strong><br>
+        Fan ${isON ? "ON" : "OFF"}<br>
+        <small style="opacity:.7">${d.date} • ${d.time}</small>
+      `;
+
       isON ? onCol.appendChild(card) : offCol.appendChild(card);
     });
 
-    statusText.textContent = latestFanStatus;
-    statusText.style.color = latestFanStatus === "ON" ? "#16a34a" : "#dc2626";
-    statusBox.style.borderLeft = `6px solid ${latestFanStatus === "ON" ? "#16a34a" : "#dc2626"}`;
+    statusText.textContent = latestStatus;
+    statusText.style.color =
+      latestStatus === "ON" ? "#16a34a" : "#dc2626";
+    statusBox.style.borderLeft =
+      `6px solid ${latestStatus === "ON" ? "#16a34a" : "#dc2626"}`;
 
     wrapper.appendChild(onCol);
     wrapper.appendChild(offCol);
@@ -132,89 +180,62 @@ function createColumn(bg, title) {
   col.style.background = bg;
   col.style.borderRadius = "18px";
   col.style.padding = "14px";
-  col.style.boxShadow = "0 6px 20px rgba(0,0,0,0.2)";
+  col.style.boxShadow = "0 6px 20px rgba(0,0,0,.2)";
   col.style.maxHeight = "420px";
   col.style.overflowY = "auto";
 
   const h = document.createElement("h3");
   h.textContent = title;
   h.style.textAlign = "center";
-  h.style.color = "#000000";
-  h.style.marginBottom = "12px";
   col.appendChild(h);
 
   return col;
 }
 
-/* ---------------- HOURLY HEAT / TEMPERATURE (REAL-TIME REVERSE) ---------------- */
+/* ---------------- WEATHER ---------------- */
 const API_KEY = "8387b43714e736b0d4296517564e1201";
 const LAT = 14.4297;
 const LON = 120.9367;
-const UNITS = "metric";
 
 async function loadHeatLevels() {
   try {
     const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${LAT}&lon=${LON}&units=${UNITS}&appid=${API_KEY}`
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${LAT}&lon=${LON}&units=metric&appid=${API_KEY}`
     );
-    if (!res.ok) throw new Error("Failed to fetch weather data");
     const data = await res.json();
 
     weatherContainer.innerHTML = "";
-    weatherContainer.style.display = "flex";
-    weatherContainer.style.flexWrap = "wrap";
-    weatherContainer.style.justifyContent = "center";
-    weatherContainer.style.gap = "10px";
-
     const now = new Date();
     const currentHour = now.getHours();
 
-    // Filter forecast for last 5 hours including current
-    const reverseHours = [];
+    // LAST 5 HOURS INCLUDING CURRENT
+    const hoursToShow = [];
     for (let i = 0; i < 5; i++) {
-      reverseHours.push((currentHour - i + 24) % 24);
+      hoursToShow.push((currentHour - i + 24) % 24);
     }
 
-    reverseHours.forEach(hour => {
-      const closestData = data.list.reduce((prev, curr) => {
+    hoursToShow.forEach(h => {
+      const item = data.list.reduce((prev, curr) => {
         const forecastHour = new Date(curr.dt_txt).getHours();
-        return Math.abs(forecastHour - hour) < Math.abs(new Date(prev.dt_txt).getHours() - hour) ? curr : prev;
+        return Math.abs(forecastHour - h) < Math.abs(new Date(prev.dt_txt).getHours() - h) ? curr : prev;
       }, data.list[0]);
 
-      const temp = closestData.main.temp;
-      const desc = closestData.weather[0].main;
-      const icon = `https://openweathermap.org/img/wn/${closestData.weather[0].icon}@2x.png`;
-      const hour12 = ((hour + 11) % 12) + 1;
-      const ampm = hour >= 12 ? "PM" : "AM";
+      const hr12 = ((h + 11) % 12) + 1;
+      const ampm = h >= 12 ? "PM" : "AM";
 
       const card = document.createElement("div");
-      card.style.background = "#d1fae5";
-      card.style.borderRadius = "14px";
-      card.style.padding = "10px";
-      card.style.textAlign = "center";
-      card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-      card.style.flex = "1 1 90px";
-      card.style.minWidth = "80px";
-      card.style.maxWidth = "120px";
-      card.style.display = "flex";
-      card.style.flexDirection = "column";
-      card.style.alignItems = "center";
-      card.style.justifyContent = "center";
-      card.style.marginBottom = "12px";
-
+      card.classList.add("card"); // use existing CSS
       card.innerHTML = `
-        <strong style="font-size:14px; margin-bottom:4px;">${hour12}:00 ${ampm}</strong>
-        <img src="${icon}" style="width:40px;height:40px; margin-bottom:4px;">
-        <span style="font-weight:bold; font-size:16px; margin-bottom:2px;">${temp.toFixed(1)}°C</span>
-        <small style="font-size:12px; opacity:0.8;">${desc}</small>
+        <div style="font-weight:600; margin-bottom:4px;">${hr12}:00 ${ampm}</div>
+        <img src="https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png" width="40" style="filter: hue-rotate(200deg) brightness(1.2);">
+        <div style="font-weight:700; margin-top:4px;">${item.main.temp.toFixed(1)}°C</div>
       `;
 
       weatherContainer.appendChild(card);
     });
 
-  } catch (err) {
-    console.error("Heat API Error:", err);
-    weatherContainer.innerHTML = "<p style='color:red;'>Failed to load heat data</p>";
+  } catch (e) {
+    weatherContainer.innerHTML = "Failed to load weather";
   }
 }
 
