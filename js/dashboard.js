@@ -49,6 +49,9 @@ onAuthStateChanged(auth, async (user) => {
   loadHistory();
   loadRecentUsers();
   loadHeatLevels();
+
+  // Auto-refresh every 5 minutes
+  setInterval(loadHeatLevels, 5 * 60 * 1000);
 });
 
 /* ---------------- RECENT USERS ---------------- */
@@ -143,10 +146,10 @@ function createColumn(bg, title) {
   return col;
 }
 
-/* ---------------- HOURLY HEAT / TEMPERATURE ---------------- */
+/* ---------------- HOURLY HEAT / TEMPERATURE (REAL-TIME REVERSE) ---------------- */
 const API_KEY = "8387b43714e736b0d4296517564e1201";
-const LAT = 14.43;
-const LON = 120.95;
+const LAT = 14.4297;
+const LON = 120.9367;
 const UNITS = "metric";
 
 async function loadHeatLevels() {
@@ -158,43 +161,57 @@ async function loadHeatLevels() {
     const data = await res.json();
 
     weatherContainer.innerHTML = "";
+    weatherContainer.style.display = "flex";
+    weatherContainer.style.flexWrap = "wrap";
+    weatherContainer.style.justifyContent = "center";
+    weatherContainer.style.gap = "10px";
 
     const now = new Date();
     const currentHour = now.getHours();
-    const hoursToShow = [];
-    for (let i = 5; i >= 1; i--) {
-      hoursToShow.push((currentHour - i + 24) % 24);
+
+    // Filter forecast for last 5 hours including current
+    const reverseHours = [];
+    for (let i = 0; i < 5; i++) {
+      reverseHours.push((currentHour - i + 24) % 24);
     }
 
-    hoursToShow.forEach(hour => {
-      const hourData = data.list.reduce((prev, curr) => {
+    reverseHours.forEach(hour => {
+      const closestData = data.list.reduce((prev, curr) => {
         const forecastHour = new Date(curr.dt_txt).getHours();
         return Math.abs(forecastHour - hour) < Math.abs(new Date(prev.dt_txt).getHours() - hour) ? curr : prev;
       }, data.list[0]);
 
-      const temp = hourData.main.temp;
-      const desc = hourData.weather[0].main;
-      const icon = `https://openweathermap.org/img/wn/${hourData.weather[0].icon}@2x.png`;
-
+      const temp = closestData.main.temp;
+      const desc = closestData.weather[0].main;
+      const icon = `https://openweathermap.org/img/wn/${closestData.weather[0].icon}@2x.png`;
       const hour12 = ((hour + 11) % 12) + 1;
       const ampm = hour >= 12 ? "PM" : "AM";
 
       const card = document.createElement("div");
       card.style.background = "#d1fae5";
       card.style.borderRadius = "14px";
-      card.style.padding = "12px";
+      card.style.padding = "10px";
       card.style.textAlign = "center";
-      card.style.boxShadow = "0 4px 14px rgba(0,0,0,0.2)";
-      card.style.flex = "1";
-      card.style.minWidth = "0";
+      card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+      card.style.flex = "1 1 90px";
+      card.style.minWidth = "80px";
+      card.style.maxWidth = "120px";
+      card.style.display = "flex";
+      card.style.flexDirection = "column";
+      card.style.alignItems = "center";
+      card.style.justifyContent = "center";
+      card.style.marginBottom = "12px";
 
-      card.innerHTML = `<strong>${hour12}:00 ${ampm}</strong><br>
-                        <img src="${icon}" style="width:40px;height:40px;"><br>
-                        <span style="font-weight:bold;">${temp.toFixed(1)}°C</span><br>
-                        <small>${desc}</small>`;
+      card.innerHTML = `
+        <strong style="font-size:14px; margin-bottom:4px;">${hour12}:00 ${ampm}</strong>
+        <img src="${icon}" style="width:40px;height:40px; margin-bottom:4px;">
+        <span style="font-weight:bold; font-size:16px; margin-bottom:2px;">${temp.toFixed(1)}°C</span>
+        <small style="font-size:12px; opacity:0.8;">${desc}</small>
+      `;
 
       weatherContainer.appendChild(card);
     });
+
   } catch (err) {
     console.error("Heat API Error:", err);
     weatherContainer.innerHTML = "<p style='color:red;'>Failed to load heat data</p>";
